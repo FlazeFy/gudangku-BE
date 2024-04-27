@@ -1,6 +1,8 @@
 package routes
 
 import (
+	// middlewares "gudangku/middlewares/jwt"
+	authhandlers "gudangku/modules/auth/http_handlers"
 	syshandlers "gudangku/modules/systems/http_handlers"
 	"net/http"
 
@@ -20,6 +22,11 @@ func InitV1() *echo.Echo {
 
 	// Dictionary
 	e.GET("api/v1/dct/:ord", syshandlers.GetDictionaryByType)
+
+	// Auth
+	e.POST("api/v1/login", authhandlers.PostLoginUser)
+	e.POST("api/v1/register", authhandlers.PostRegister)
+	e.POST("api/v1/logout", authhandlers.SignOut)
 
 	// =============== Private routes ===============
 

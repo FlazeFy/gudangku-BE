@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"gudangku/configs"
+
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -23,6 +25,14 @@ func CheckPasswordHash(password, hash string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func GetJWTConfiguration(name string) string {
+	if name == "exp" {
+		conf := configs.GetConfigJWT()
+		return conf.JWT_EXP
+	}
+	return ""
 }
 
 func GetTokenHeader(c echo.Context) (bool, string) {
