@@ -35,6 +35,10 @@ func InitV1() *echo.Echo {
 	e.GET("api/v1/stats/total_inventory_by_favorite", stshandlers.GetTotalInventoryByFavorite)
 	e.GET("api/v1/stats/total_inventory_by_room", stshandlers.GetTotalInventoryByRoom)
 
+	// History
+	e.GET("api/v1/history", syshandlers.GetAllHistory)
+	e.DELETE("api/v1/history/:id", syshandlers.HardDelHistoryById)
+
 	// =============== Private routes ===============
 
 	return e
