@@ -17,7 +17,7 @@ func GetDictionaryByType(page, pageSize int, path string, dctType string) (respo
 	var obj models.GetDictionaryByType
 	var arrobj []models.GetDictionaryByType
 	var res response.Response
-	var baseTable = "dictionaries"
+	var baseTable = "dictionary"
 	var sqlStatement string
 	var where string
 
@@ -26,14 +26,14 @@ func GetDictionaryByType(page, pageSize int, path string, dctType string) (respo
 
 	// Query builder
 	if dctType != "all" {
-		where = "dictionaries_type = '" + dctType + "' "
+		where = "dictionary_type = '" + dctType + "' "
 	} else {
 		where = "1 "
 	}
 
-	order := "dictionaries_name DESC "
+	order := "dictionary_name DESC "
 
-	sqlStatement = "SELECT id, dictionaries_name " +
+	sqlStatement = "SELECT id, dictionary_name	 " +
 		"FROM " + baseTable + " " +
 		"WHERE " + where +
 		"ORDER BY " + order +

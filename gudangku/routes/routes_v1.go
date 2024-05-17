@@ -23,7 +23,7 @@ func InitV1() *echo.Echo {
 	// =============== Public routes ===============
 
 	// Dictionary
-	e.GET("api/v1/dct/:ord", syshandlers.GetDictionaryByType)
+	e.GET("api/v1/dct/:type", syshandlers.GetDictionaryByType)
 
 	// Auth
 	e.POST("api/v1/login", authhandlers.PostLoginUser)
@@ -34,6 +34,8 @@ func InitV1() *echo.Echo {
 	e.GET("api/v1/stats/total_inventory_by_category", stshandlers.GetTotalInventoryByCategory)
 	e.GET("api/v1/stats/total_inventory_by_favorite", stshandlers.GetTotalInventoryByFavorite)
 	e.GET("api/v1/stats/total_inventory_by_room", stshandlers.GetTotalInventoryByRoom)
+	e.GET("api/v1/stats/total_reminder_by_type", stshandlers.GetTotalReminderByType)
+	e.GET("api/v1/stats/total_report_by_category", stshandlers.GetTotalReportByCategory)
 
 	// History
 	e.GET("api/v1/history", syshandlers.GetAllHistory)

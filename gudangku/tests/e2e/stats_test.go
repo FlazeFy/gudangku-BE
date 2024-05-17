@@ -46,4 +46,22 @@ var _ = Describe("GudangKu API Testing - Stats", func() {
 
 		tests.ValidateResponse(resp, err)
 	})
+
+	It(fmt.Sprintf("%s - Total Reminder By Type", method), func() {
+		client := resty.New()
+		resp, err := client.R().
+			SetHeader("Authorization", fmt.Sprintf("Bearer %s", token)).
+			Get(local_url + "/api/v1/stats/total_reminder_by_type")
+
+		tests.ValidateResponse(resp, err)
+	})
+
+	It(fmt.Sprintf("%s - Total Report By Category", method), func() {
+		client := resty.New()
+		resp, err := client.R().
+			SetHeader("Authorization", fmt.Sprintf("Bearer %s", token)).
+			Get(local_url + "/api/v1/stats/total_report_by_category")
+
+		tests.ValidateResponse(resp, err)
+	})
 })
