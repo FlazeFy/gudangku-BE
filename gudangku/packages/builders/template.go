@@ -23,6 +23,8 @@ func GetTemplateSelect(name string, firstTable, secondTable *string) string {
 		return "tokenable_type, tokenable_id, name, token, abilities, last_used_at, expires_at, created_at"
 	} else if name == "inventory_list" {
 		return "id,inventory_name,inventory_vol,inventory_unit"
+	} else if name == "inventory_calendar" {
+		return "inventory_name,inventory_price,created_at"
 	}
 	return ""
 }
