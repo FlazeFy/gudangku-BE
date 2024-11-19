@@ -20,6 +20,8 @@ func GetValidationLength(col string) (int, int) {
 		return 1, 36
 	} else if col == "last_name" {
 		return 0, 36
+	} else if col == "timezone" {
+		return 6, 6
 	} else if col == "valid_until" {
 		yearNow := time.Now().Year()
 		max := yearNow + 6

@@ -15,15 +15,13 @@ func GetValidateRegister(body models.UserRegister) (bool, string) {
 	minUname, maxUname := validator.GetValidationLength("username")
 	minPass, maxPass := validator.GetValidationLength("password")
 	minEmail, maxEmail := validator.GetValidationLength("email")
-	minFName, maxFName := validator.GetValidationLength("first_name")
-	_, maxLName := validator.GetValidationLength("last_name")
+	minTimezone, maxTimezone := validator.GetValidationLength("timezone")
 
 	// Value
 	uname := converter.TotalChar(body.Username)
 	pass := converter.TotalChar(body.Password)
 	email := converter.TotalChar(body.Email)
-	fname := converter.TotalChar(body.FirstName)
-	lname := converter.TotalChar(body.LastName)
+	timezone := converter.TotalChar(body.Timezone)
 
 	// Validate
 	if uname <= minUname || uname >= maxUname {
@@ -44,19 +42,12 @@ func GetValidateRegister(body models.UserRegister) (bool, string) {
 		}
 		msg += generator.GenerateValidatorMsg("Email", minEmail, maxEmail)
 	}
-	if fname <= minFName || fname >= maxFName {
+	if timezone < minTimezone || timezone > maxTimezone {
 		status = false
 		if msg != "" {
 			msg += ", "
 		}
-		msg += generator.GenerateValidatorMsg("First name", minFName, maxFName)
-	}
-	if lname >= maxLName {
-		status = false
-		if msg != "" {
-			msg += ", "
-		}
-		msg += generator.GenerateValidatorMsg("Last name", 0, maxFName)
+		msg += generator.GenerateValidatorMsg("Timezone", minTimezone, maxTimezone)
 	}
 
 	if status {

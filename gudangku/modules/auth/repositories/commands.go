@@ -29,6 +29,7 @@ func PostUserAuth(username, password string) (string, error, string) {
 		sqlStatement := "SELECT id, " + selectTemplate + " " +
 			"FROM " + baseTable +
 			" WHERE username = ?"
+		fmt.Println(sqlStatement)
 
 		con := database.CreateCon()
 		err := con.QueryRow(sqlStatement, username).Scan(
@@ -72,18 +73,17 @@ func PostUserRegister(body models.UserRegister) (response.Response, error) {
 		hashPass := auth.GenerateHashPassword(body.Password)
 
 		// Query builder
-		colFirstTemplate := builders.GetTemplateSelect("user_credential", nil, nil)
-		colSecondTemplate := builders.GetTemplateSelect("user_mini_info", nil, nil)
-		colFourthTemplate := builders.GetTemplateSelect("user_joined_info", &baseTable, nil)
+		colFirstTemplate := builders.GetTemplateSelect("auth", nil, nil)
+		colSecondTemplate := builders.GetTemplateSelect("social", &baseTable, nil)
 
 		if err != nil {
 			return res, err
 		}
 
 		sqlStatement := "INSERT INTO " + baseTable + " " +
-			"(id, " + colFirstTemplate + ", " + colSecondTemplate + ", created_at, updated_at, updated_by" +
-			", deleted_at, deleted_by, " + colFourthTemplate + ") " + " " +
-			"VALUES (?, ?, ?, ?, ?, ?, null, ?, null, null, null, null, null, null, 0)"
+			"(id, " + colFirstTemplate + ", created_at, updated_at " +
+			", " + colSecondTemplate + ") " + " " +
+			"VALUES (?, ?, ?, ?, null, ?, null, 0, null, null, null, ?)"
 
 		// Exec
 		con := database.CreateCon()
@@ -94,7 +94,7 @@ func PostUserRegister(body models.UserRegister) (response.Response, error) {
 			return res, err
 		}
 
-		result, err := cmd.Exec(id, body.Username, body.Email, hashPass, body.FirstName, body.LastName, createdAt)
+		result, err := cmd.Exec(id, body.Username, hashPass, createdAt, body.Email, body.Timezone)
 		if err != nil {
 			return res, err
 		}
@@ -116,19 +116,21 @@ func PostUserRegister(body models.UserRegister) (response.Response, error) {
 
 func PostAccessToken(body models.UserToken) error {
 	// Declaration
-	var baseTable = "users_tokens"
-	id, err := generator.GenerateUUID(16)
+	var baseTable = "personal_access_tokens"
+	id, err := generator.GenerateUUID(36)
 	if err != nil {
 		return err
 	}
 	createdAt := generator.GenerateTimeNow("timestamp")
+	name := "login"
+	ability := strings.Repeat("[", 1) + strings.Repeat("]", 1)
 
 	// Query builder
 	colFirstTemplate := builders.GetTemplateSelect("user_access", nil, nil)
 
 	sqlStatement := "INSERT INTO " + baseTable + " " +
-		"(id, " + colFirstTemplate + ", token, last_used_at, created_at) " + " " +
-		"VALUES (?, ?, ?, ?, null, ?)"
+		"(id, " + colFirstTemplate + ", updated_at) " + " " +
+		"VALUES (?, ?, ?, ?, ?, ?, null, null, ?, ?)"
 
 	// Exec
 	con := database.CreateCon()
@@ -137,7 +139,8 @@ func PostAccessToken(body models.UserToken) error {
 		return err
 	}
 
-	result, err := cmd.Exec(id, body.ContextType, body.ContextId, body.Token, createdAt)
+	result, err := cmd.Exec(id, body.ContextType, body.ContextId, name, body.Token, ability, createdAt, createdAt)
+	fmt.Println(err)
 	if err != nil {
 		return err
 	}

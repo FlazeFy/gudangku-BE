@@ -3,6 +3,7 @@ package routes
 import (
 	// middlewares "gudangku/middlewares/jwt"
 	authhandlers "gudangku/modules/auth/http_handlers"
+	invhandlers "gudangku/modules/inventories/http_handlers"
 	stshandlers "gudangku/modules/stats/http_handlers"
 	syshandlers "gudangku/modules/systems/http_handlers"
 
@@ -34,8 +35,12 @@ func InitV1() *echo.Echo {
 	e.GET("api/v1/stats/total_inventory_by_category", stshandlers.GetTotalInventoryByCategory)
 	e.GET("api/v1/stats/total_inventory_by_favorite", stshandlers.GetTotalInventoryByFavorite)
 	e.GET("api/v1/stats/total_inventory_by_room", stshandlers.GetTotalInventoryByRoom)
+	e.GET("api/v1/stats/total_inventory_by_merk", stshandlers.GetTotalInventoryByMerk)
 	e.GET("api/v1/stats/total_reminder_by_type", stshandlers.GetTotalReminderByType)
 	e.GET("api/v1/stats/total_report_by_category", stshandlers.GetTotalReportByCategory)
+
+	// Inventory
+	e.GET("api/v1/inventory/list", invhandlers.GetListInventory)
 
 	// History
 	e.GET("api/v1/history", syshandlers.GetAllHistory)

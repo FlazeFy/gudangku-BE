@@ -12,7 +12,17 @@ func GetTemplateSelect(name string, firstTable, secondTable *string) string {
 	} else if name == "properties_time" {
 		return "created_at, created_by"
 	} else if name == "properties_full" {
-		return "created_at, created_by, updated_at, updated_by"
+		return "created_at, created_by, updated_at"
+	} else if name == "auth" {
+		return "username, password"
+	} else if name == "user_credential" {
+		return "username, email, password"
+	} else if name == "social" {
+		return "email, telegram_user_id, telegram_is_valid, firebase_fcm_token, line_user_id, phone, timezone"
+	} else if name == "user_access" {
+		return "tokenable_type, tokenable_id, name, token, abilities, last_used_at, expires_at, created_at"
+	} else if name == "inventory_list" {
+		return "id,inventory_name,inventory_vol,inventory_unit"
 	}
 	return ""
 }

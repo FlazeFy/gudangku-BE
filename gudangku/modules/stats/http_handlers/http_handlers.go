@@ -73,3 +73,15 @@ func GetTotalReportByCategory(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, result)
 }
+
+func GetTotalInventoryByMerk(c echo.Context) error {
+	view := "inventory_merk"
+	table := "inventory"
+
+	result, err := repositories.GetTotalStats(view, table, "most_appear", nil)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
