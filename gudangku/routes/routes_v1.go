@@ -43,6 +43,8 @@ func InitV1() *echo.Echo {
 	e.GET("api/v1/inventory/list", invhandlers.GetListInventory)
 	e.GET("api/v1/inventory/calendar", invhandlers.GetListCalendar)
 	e.GET("api/v1/inventory/room", invhandlers.GetListRoom)
+	e.GET("api/v1/inventory/merk", invhandlers.GetListMerk)
+	e.GET("api/v1/inventory/search/by_room_storage/:room/:storage", invhandlers.GetInventoryByStorage)
 
 	// History
 	e.GET("api/v1/history", syshandlers.GetAllHistory)

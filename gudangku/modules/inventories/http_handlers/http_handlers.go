@@ -33,3 +33,23 @@ func GetListRoom(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, result)
 }
+
+func GetListMerk(c echo.Context) error {
+	result, err := repositories.GetListContextTotalRepo("inventory_merk")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func GetInventoryByStorage(c echo.Context) error {
+	room := c.Param("room")
+	storage := c.Param("storage")
+	result, err := repositories.GetInventoryByStorageRepo(room, storage)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
