@@ -1,10 +1,12 @@
 package repositories
 
 import (
+	"database/sql"
 	"gudangku/modules/inventories/models"
 	stats_model "gudangku/modules/stats/models"
 	"gudangku/packages/builders"
 	"gudangku/packages/database"
+	"gudangku/packages/helpers/converter"
 	"gudangku/packages/helpers/generator"
 	"gudangku/packages/helpers/response"
 	"net/http"
@@ -276,6 +278,128 @@ func GetInventoryByStorageRepo(room, storage string) (response.ResponseWithStats
 		res.Status = http.StatusNotFound
 		res.Message = generator.GenerateQueryMsg(baseTable, 0)
 	}
+
+	return res, nil
+}
+
+func GetInventoryDetailRepo(id string) (response.ResponseWithReminder, error) {
+	// Declaration
+	var obj models.GetInventoryDetailModel
+	var objReminder models.GetReminderModel
+	var arrobjReminder []models.GetReminderModel
+	var res response.ResponseWithReminder
+	var baseTable = "inventory"
+	var sqlStatement string
+
+	// Nullable Column
+	var InventoryDesc, InventoryImage, InventoryStorage, InventoryCapacityVol, InventoryRack, InventoryMerk, InventoryCapacityUnit, InventoryColor, UpdatedAt, DeletedAt sql.NullString
+
+	// Converted Column
+	var InventoryVol, InventoryPrice string
+
+	sqlStatement = "SELECT * " +
+		"FROM " + baseTable + " " +
+		"WHERE id = '" + id + "'"
+
+	// Exec
+	con := database.CreateCon()
+	rows, err := con.Query(sqlStatement)
+	defer rows.Close()
+
+	if err != nil {
+		return res, err
+	}
+
+	// Map
+	for rows.Next() {
+		err = rows.Scan(
+			&obj.ID,
+			&obj.InventoryName,
+			&obj.InventoryCategory,
+			&InventoryDesc,
+			&InventoryMerk,
+			&obj.InventoryRoom,
+			&InventoryStorage,
+			&InventoryRack,
+			&InventoryPrice,
+			&InventoryImage,
+			&obj.InventoryUnit,
+			&InventoryVol,
+			&InventoryCapacityUnit,
+			&InventoryCapacityVol,
+			&InventoryColor,
+			&obj.IsFavorite,
+			&obj.IsReminder,
+			&obj.CreatedAt,
+			&obj.CreatedBy,
+			&UpdatedAt,
+			&DeletedAt,
+		)
+
+		if err != nil {
+			return res, err
+		}
+
+		// Convert InventoryVol
+		intInventoryVol, err := strconv.Atoi(InventoryVol)
+		if err != nil {
+			return res, err
+		}
+		intInventoryPrice, err := strconv.Atoi(InventoryPrice)
+		if err != nil {
+			return res, err
+		}
+		obj.InventoryPrice = intInventoryPrice
+		obj.InventoryVol = intInventoryVol
+
+		// Nullable
+		obj.InventoryDesc = converter.CheckNullString(InventoryDesc)
+		obj.InventoryMerk = converter.CheckNullString(InventoryMerk)
+		obj.InventoryImage = converter.CheckNullString(InventoryImage)
+		obj.InventoryRack = converter.CheckNullString(InventoryRack)
+		obj.InventoryCapacityUnit = converter.CheckNullString(InventoryCapacityUnit)
+		inventoryCapacityVolInt, err := converter.ConvertNullStringToInt(InventoryCapacityVol)
+		obj.InventoryCapacityVol = inventoryCapacityVolInt
+		obj.InventoryColor = converter.CheckNullString(InventoryColor)
+		obj.UpdatedAt = converter.CheckNullString(UpdatedAt)
+		obj.DeletedAt = converter.CheckNullString(DeletedAt)
+	}
+
+	if obj.ID != "" {
+		sqlStatementReminder := "SELECT id, reminder_desc, reminder_type, reminder_context, created_at " +
+			"FROM reminder " +
+			"WHERE inventory_id = '" + id + "'"
+
+		// Exec
+		con := database.CreateCon()
+		rowsReminder, err := con.Query(sqlStatementReminder)
+		defer rows.Close()
+
+		if err != nil {
+			return res, err
+		}
+
+		// Map
+		for rowsReminder.Next() {
+			err = rowsReminder.Scan(
+				&objReminder.ID,
+				&objReminder.ReminderDesc,
+				&objReminder.ReminderType,
+				&objReminder.ReminderContext,
+				&objReminder.CreatedAt,
+			)
+
+			if err != nil {
+				return res, err
+			}
+
+			arrobjReminder = append(arrobjReminder, objReminder)
+		}
+	}
+	res.Status = http.StatusOK
+	res.Message = generator.GenerateQueryMsg(baseTable, 1)
+	res.Data = obj
+	res.Reminder = arrobjReminder
 
 	return res, nil
 }

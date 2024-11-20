@@ -3,6 +3,7 @@ package converter
 import (
 	"database/sql"
 	"encoding/json"
+	"strconv"
 	"strings"
 )
 
@@ -16,7 +17,12 @@ func CheckNullString(data sql.NullString) string {
 
 	return res
 }
-
+func ConvertNullStringToInt(ns sql.NullString) (int, error) {
+	if ns.Valid {
+		return strconv.Atoi(ns.String)
+	}
+	return 0, nil
+}
 func TotalChar(val string) int {
 	trimed := strings.TrimSpace(val)
 	return len(trimed)
