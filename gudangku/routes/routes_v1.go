@@ -1,7 +1,7 @@
 package routes
 
 import (
-	// middlewares "gudangku/middlewares/jwt"
+	middlewares "gudangku/middlewares/jwt"
 	authhandlers "gudangku/modules/auth/http_handlers"
 	invhandlers "gudangku/modules/inventories/http_handlers"
 	stshandlers "gudangku/modules/stats/http_handlers"
@@ -29,7 +29,8 @@ func InitV1() *echo.Echo {
 	// Auth
 	e.POST("api/v1/login", authhandlers.PostLoginUser)
 	e.POST("api/v1/register", authhandlers.PostRegister)
-	e.POST("api/v1/logout", authhandlers.SignOut)
+	e.POST("api/v1/logout", authhandlers.SignOut, middlewares.CustomJWTAuth)
+	e.GET("api/v1/user/my_profile", authhandlers.GetMyProfile, middlewares.CustomJWTAuth)
 
 	// Stats
 	e.GET("api/v1/stats/total_inventory_by_category", stshandlers.GetTotalInventoryByCategory)
@@ -48,13 +49,11 @@ func InitV1() *echo.Echo {
 	e.GET("api/v1/inventory/detail/:id", invhandlers.GetInventoryDetail)
 
 	// Reminder
-	e.POST("api/v1/reminder", invhandlers.PostReminder)
+	e.POST("api/v1/reminder", invhandlers.PostReminder, middlewares.CustomJWTAuth)
 
 	// History
 	e.GET("api/v1/history", syshandlers.GetAllHistory)
 	e.DELETE("api/v1/history/:id", syshandlers.HardDelHistoryById)
-
-	// =============== Private routes ===============
 
 	return e
 }

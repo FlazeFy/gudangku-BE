@@ -4,6 +4,7 @@ import (
 	middlewares "gudangku/middlewares/jwt"
 	"gudangku/modules/auth/models"
 	"gudangku/modules/auth/repositories"
+	"gudangku/packages/helpers/auth"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -51,4 +52,19 @@ func SignOut(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, result)
+}
+
+func GetMyProfile(c echo.Context) error {
+	is_with_token, token := auth.GetTokenHeader(c)
+
+	if is_with_token {
+		result, err := repositories.GetMyProfileRepo(token)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+		}
+		return c.JSON(http.StatusOK, result)
+
+	} else {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized"})
+	}
 }
