@@ -29,7 +29,6 @@ func PostUserAuth(username, password string) (string, error, string) {
 		sqlStatement := "SELECT id, " + selectTemplate + " " +
 			"FROM " + baseTable +
 			" WHERE username = ?"
-		fmt.Println(sqlStatement)
 
 		con := database.CreateCon()
 		err := con.QueryRow(sqlStatement, username).Scan(
@@ -62,50 +61,64 @@ func PostUserRegister(body models.UserRegister) (response.Response, error) {
 	status, msg := validations.GetValidateRegister(body)
 
 	if status {
-		// Declaration
 		var baseTable = "users"
-		id, err := generator.GenerateUUID(16)
-		if err != nil {
-			return res, err
-		}
-
-		createdAt := generator.GenerateTimeNow("timestamp")
-		hashPass := auth.GenerateHashPassword(body.Password)
-
-		// Query builder
-		colFirstTemplate := builders.GetTemplateSelect("auth", nil, nil)
-		colSecondTemplate := builders.GetTemplateSelect("social", &baseTable, nil)
-
-		if err != nil {
-			return res, err
-		}
-
-		sqlStatement := "INSERT INTO " + baseTable + " " +
-			"(id, " + colFirstTemplate + ", created_at, updated_at " +
-			", " + colSecondTemplate + ") " + " " +
-			"VALUES (?, ?, ?, ?, null, ?, null, 0, null, null, null, ?)"
-
-		// Exec
 		con := database.CreateCon()
-		cmd, err := con.Prepare(sqlStatement)
-		defer cmd.Close()
 
+		// Check email or username
+		allow, err := builders.GetUserRegisterAvailability(con, body.Username, body.Email)
 		if err != nil {
 			return res, err
 		}
 
-		result, err := cmd.Exec(id, body.Username, hashPass, createdAt, body.Email, body.Timezone)
-		if err != nil {
-			return res, err
+		if !allow {
+			res.Status = http.StatusConflict
+			res.Message = "User already exists"
+			res.Data = nil
+		} else {
+			// Declaration
+			id, err := generator.GenerateUUID(16)
+			if err != nil {
+				return res, err
+			}
+
+			createdAt := generator.GenerateTimeNow("timestamp")
+			hashPass := auth.GenerateHashPassword(body.Password)
+
+			// Query builder
+			colFirstTemplate := builders.GetTemplateSelect("auth", nil, nil)
+			colSecondTemplate := builders.GetTemplateSelect("social", &baseTable, nil)
+
+			if err != nil {
+				return res, err
+			}
+
+			sqlStatement := "INSERT INTO " + baseTable + " " +
+				"(id, " + colFirstTemplate + ", created_at, updated_at " +
+				", " + colSecondTemplate + ") " + " " +
+				"VALUES (?, ?, ?, ?, null, ?, null, 0, null, null, null, ?)"
+
+			// Exec
+			con := database.CreateCon()
+			cmd, err := con.Prepare(sqlStatement)
+			defer cmd.Close()
+
+			if err != nil {
+				return res, err
+			}
+
+			result, err := cmd.Exec(id, body.Username, hashPass, createdAt, body.Email, body.Timezone)
+			if err != nil {
+				return res, err
+			}
+
+			rowsAffected, _ := result.RowsAffected()
+			resultStr := fmt.Sprintf("%d", rowsAffected)
+
+			// Response
+			res.Status = http.StatusOK
+			res.Message = generator.GenerateCommandMsg("account", "register", 1)
+			res.Data = map[string]string{"last_inserted_id": id, "result": resultStr + " rows affected"}
 		}
-
-		rowsAffected, _ := result.RowsAffected()
-		resultStr := fmt.Sprintf("%d", rowsAffected)
-
-		// Response
-		res.Status = http.StatusOK
-		res.Message = generator.GenerateCommandMsg("account", "register", 1)
-		res.Data = map[string]string{"last_inserted_id": id, "result": resultStr + " rows affected"}
 	} else {
 		res.Status = http.StatusUnprocessableEntity
 		res.Message = generator.GenerateCommandMsg("account. "+msg, "register", 0)
@@ -117,7 +130,7 @@ func PostUserRegister(body models.UserRegister) (response.Response, error) {
 func PostAccessToken(body models.UserToken) error {
 	// Declaration
 	var baseTable = "personal_access_tokens"
-	id, err := generator.GenerateUUID(36)
+	id, err := generator.GenerateUUID(32)
 	if err != nil {
 		return err
 	}

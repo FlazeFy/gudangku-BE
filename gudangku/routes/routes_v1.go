@@ -47,6 +47,9 @@ func InitV1() *echo.Echo {
 	e.GET("api/v1/inventory/search/by_room_storage/:room/:storage", invhandlers.GetInventoryByStorage)
 	e.GET("api/v1/inventory/detail/:id", invhandlers.GetInventoryDetail)
 
+	// Reminder
+	e.POST("api/v1/reminder", invhandlers.PostReminder)
+
 	// History
 	e.GET("api/v1/history", syshandlers.GetAllHistory)
 	e.DELETE("api/v1/history/:id", syshandlers.HardDelHistoryById)
