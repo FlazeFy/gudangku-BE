@@ -27,7 +27,18 @@ func TotalChar(val string) int {
 	trimed := strings.TrimSpace(val)
 	return len(trimed)
 }
-
+func NullableString(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+func NullableInt(value int) interface{} {
+	if value == 0 {
+		return nil
+	}
+	return value
+}
 func ConvertStringBool(val string) bool {
 	if val == "0" {
 		return false
@@ -35,7 +46,6 @@ func ConvertStringBool(val string) bool {
 		return true
 	}
 }
-
 func MapToString(val map[string]string) string {
 	result, _ := json.Marshal(val)
 	return string(result)

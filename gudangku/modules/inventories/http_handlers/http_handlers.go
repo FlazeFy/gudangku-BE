@@ -3,7 +3,11 @@ package httphandlers
 import (
 	"gudangku/modules/inventories/models"
 	"gudangku/modules/inventories/repositories"
+	"gudangku/packages/helpers/converter"
 	"net/http"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/labstack/echo"
 )
@@ -75,6 +79,42 @@ func PostReminder(c echo.Context) error {
 	obj.ReminderType = c.FormValue("reminder_type")
 
 	result, err := repositories.PostReminderRepo(obj, token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func PostInventory(c echo.Context) error {
+	var obj models.InventoryDetailModel
+	token := c.Request().Header.Get("Authorization")
+
+	obj.InventoryName = c.FormValue("inventory_name")
+	obj.InventoryCategory = converter.NullableString(c.FormValue("inventory_category"))
+	obj.InventoryDesc = converter.NullableString(c.FormValue("inventory_desc"))
+	obj.InventoryMerk = converter.NullableString(c.FormValue("inventory_merk"))
+	obj.InventoryRoom = converter.NullableString(c.FormValue("inventory_room"))
+	obj.InventoryStorage = converter.NullableString(c.FormValue("inventory_storage"))
+	obj.InventoryRack = converter.NullableString(c.FormValue("inventory_rack"))
+	obj.InventoryPrice, _ = strconv.Atoi(c.FormValue("inventory_price"))
+	obj.InventoryImage = converter.NullableString(c.FormValue("inventory_image"))
+	obj.InventoryUnit = c.FormValue("inventory_unit")
+	obj.InventoryVol, _ = strconv.Atoi(c.FormValue("inventory_vol"))
+	obj.InventoryCapacityUnit = converter.NullableString(c.FormValue("inventory_capacity_unit"))
+	obj.InventoryCapacityVol, _ = strconv.Atoi(c.FormValue("inventory_capacity_vol"))
+	obj.InventoryColor = converter.NullableString(c.FormValue("inventory_color"))
+	obj.IsFavorite, _ = strconv.Atoi(c.FormValue("is_favorite"))
+	obj.IsReminder, _ = strconv.Atoi(c.FormValue("is_reminder"))
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Failed to retrieve the file"})
+	}
+	fileExt := strings.ToLower(strings.TrimPrefix(filepath.Ext(file.Filename), "."))
+	fileSize := file.Size
+
+	result, err := repositories.PostInventoryRepo(obj, token, file, fileExt, fileSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 	}

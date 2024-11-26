@@ -55,9 +55,25 @@ func GetUserRegisterAvailability(con *sql.DB, username, email string) (bool, err
 	return false, nil
 }
 
-func GetReminderAvailability(con *sql.DB, inventory_id, reminder_type, reminder_context string) (bool, error) {
-	checkStatement := "SELECT 1 FROM reminder WHERE inventory_id = ? AND reminder_type = ? AND reminder_context = ? LIMIT 1"
-	row := con.QueryRow(checkStatement, inventory_id, reminder_type, reminder_context)
+func GetReminderAvailability(con *sql.DB, inventory_id, reminder_type, reminder_context, created_by string) (bool, error) {
+	checkStatement := "SELECT 1 FROM reminder WHERE inventory_id = ? AND reminder_type = ? AND reminder_context = ? AND created_by = ? LIMIT 1"
+	row := con.QueryRow(checkStatement, inventory_id, reminder_type, reminder_context, created_by)
+
+	var dummy int
+	err := row.Scan(&dummy)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return true, nil
+		}
+		return false, err
+	}
+
+	return false, nil
+}
+
+func GetInventoryAvailability(con *sql.DB, inventory_name, created_by string) (bool, error) {
+	checkStatement := "SELECT 1 FROM inventory WHERE inventory_name = ? AND created_by = ? LIMIT 1"
+	row := con.QueryRow(checkStatement, inventory_name, created_by)
 
 	var dummy int
 	err := row.Scan(&dummy)
@@ -87,20 +103,21 @@ func GetInventoryName(con *sql.DB, inventory_id, user_id string) (string, error)
 	return inventoryName, nil
 }
 
-func GetUserSocial(con *sql.DB, user_id string) (int64, bool, error) {
-	checkStatement := "SELECT telegram_user_id, telegram_is_valid, email FROM users WHERE id = ? LIMIT 1"
+func GetUserSocial(con *sql.DB, user_id string) (string, int64, bool, error) {
+	checkStatement := "SELECT username, telegram_user_id, telegram_is_valid, email FROM users WHERE id = ? LIMIT 1"
 	row := con.QueryRow(checkStatement, user_id)
 
 	var telegramUserId *string
+	var username *string
 	var telegramIsValid int
 	var email *string
 
-	err := row.Scan(&telegramUserId, &telegramIsValid, &email)
+	err := row.Scan(&username, &telegramUserId, &telegramIsValid, &email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, false, nil
+			return "", 0, false, nil
 		}
-		return 0, false, err
+		return "", 0, false, err
 	}
 
 	var telegramUserIdValue int64
@@ -109,9 +126,9 @@ func GetUserSocial(con *sql.DB, user_id string) (int64, bool, error) {
 	if telegramUserId != nil {
 		telegramUserIdValue, err = strconv.ParseInt(*telegramUserId, 10, 64)
 		if err != nil {
-			return 0, false, fmt.Errorf("failed to convert telegram_user_id to int64: %w", err)
+			return "", 0, false, fmt.Errorf("failed to convert telegram_user_id to int64: %w", err)
 		}
 	}
 
-	return telegramUserIdValue, isValid, nil
+	return *username, telegramUserIdValue, isValid, nil
 }

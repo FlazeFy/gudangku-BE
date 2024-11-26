@@ -25,6 +25,8 @@ func GetTemplateSelect(name string, firstTable, secondTable *string) string {
 		return "id,inventory_name,inventory_vol,inventory_unit"
 	} else if name == "inventory_calendar" {
 		return "inventory_name,inventory_price,created_at"
+	} else if name == "inventory_placement" {
+		return "inventory_room,inventory_storage,inventory_rack"
 	}
 	return ""
 }
