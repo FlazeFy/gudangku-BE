@@ -103,6 +103,23 @@ func GetInventoryName(con *sql.DB, inventory_id, user_id string) (string, error)
 	return inventoryName, nil
 }
 
+func GetInventoryImageById(con *sql.DB, inventory_id, user_id string) (string, *string, error) {
+	checkStatement := "SELECT inventory_name, inventory_image FROM inventory WHERE id = ? AND created_by = ? LIMIT 1"
+	row := con.QueryRow(checkStatement, inventory_id, user_id)
+
+	var inventoryName string
+	var inventoryImage *string
+	err := row.Scan(&inventoryName, &inventoryImage)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil, nil
+		}
+		return "", nil, err
+	}
+
+	return inventoryName, inventoryImage, nil
+}
+
 func GetUserSocial(con *sql.DB, user_id string) (string, int64, bool, error) {
 	checkStatement := "SELECT username, telegram_user_id, telegram_is_valid, email FROM users WHERE id = ? LIMIT 1"
 	row := con.QueryRow(checkStatement, user_id)

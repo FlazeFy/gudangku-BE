@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/url"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/google/uuid"
@@ -66,4 +68,45 @@ func UploadFile(ctx, user_id, username string, file *multipart.FileHeader, fileE
 	}
 
 	return attrs.MediaLink, nil
+}
+
+func DeleteFile(downloadURL string) error {
+	firebase, err := initFirebase()
+	if err != nil {
+		return fmt.Errorf("failed to initialize Firebase: %w", err)
+	}
+
+	parsedURL, err := url.Parse(downloadURL)
+	if err != nil {
+		return fmt.Errorf("failed to parse download URL: %w", err)
+	}
+
+	if parsedURL.Path == "" && parsedURL.RawPath == "" {
+		return fmt.Errorf("invalid download URL, no path found")
+	}
+
+	path := parsedURL.Path
+	if strings.Contains(path, "/o/") {
+		path = strings.SplitN(path, "/o/", 2)[1]
+		path, err = url.QueryUnescape(path)
+		if err != nil {
+			return fmt.Errorf("failed to decode object path: %w", err)
+		}
+	} else {
+		return fmt.Errorf("invalid download URL format, missing '/o/' segment")
+	}
+
+	bucket := firebase.StorageClient.Bucket("gudangku-94edc.appspot.com")
+	obj := bucket.Object(path)
+
+	_, err = obj.Attrs(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get object attributes: %w", err)
+	}
+
+	if err := obj.Delete(context.Background()); err != nil {
+		return fmt.Errorf("failed to delete object: %w", err)
+	}
+
+	return nil
 }

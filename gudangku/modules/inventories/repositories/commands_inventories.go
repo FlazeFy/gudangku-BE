@@ -250,3 +250,110 @@ func PostInventoryRepo(d models.InventoryDetailModel, token string, file *multip
 
 	return res, nil
 }
+
+func PutInventoryImageRepo(id, token string, file *multipart.FileHeader, fileExt string, fileSize int64) (response.Response, error) {
+	// Declaration
+	var res response.Response
+	var baseTable = "inventory"
+	var sqlStatement string
+	dt := time.Now().Format("2006-01-02 15:04:05")
+	token = strings.Replace(token, "Bearer ", "", -1)
+	con := database.CreateCon()
+	var newInventoryImage *string
+
+	userId, err := builders.GetUserIdFromToken(con, token)
+	if err != nil {
+		return res, err
+	}
+
+	if userId != "" {
+		// Get old inventory image
+		_, oldInventoryImage, err := builders.GetInventoryImageById(con, id, userId)
+		if err != nil {
+			return res, err
+		}
+		if oldInventoryImage != nil {
+			// Delete image
+			err := firebase.DeleteFile(*oldInventoryImage)
+			if err != nil {
+				return res, err
+			}
+			newInventoryImage = nil
+		}
+		if file != nil {
+			username, _, _, err := builders.GetUserSocial(con, userId)
+			if err != nil {
+				return res, err
+			}
+
+			// Validate file type
+			if !isValidFileType(fileExt) {
+				res.Status = http.StatusInternalServerError
+				res.Message = fmt.Sprintf("The file must be a %s file type.", strings.Join(config.AllowedFileType, ", "))
+				res.Data = nil
+				return res, nil
+			}
+
+			// Validate file size
+			if fileSize > config.MaxSizeFile {
+				res.Status = http.StatusInternalServerError
+				res.Message = fmt.Sprintf("The file size must be under %.2f MB", float64(config.MaxSizeFile)/1000000)
+				res.Data = nil
+				return res, nil
+			}
+
+			// Check open file
+			fileReader, err := file.Open()
+			if err != nil {
+				res.Status = http.StatusInternalServerError
+				res.Message = "Failed to open the file"
+				res.Data = nil
+				return res, nil
+			}
+			defer fileReader.Close()
+
+			// Helper : Firebase Upload image
+			inventoryImage, err := firebase.UploadFile(baseTable, userId, username, file, fileExt)
+			if err != nil {
+				return res, err
+			}
+			newInventoryImage = &inventoryImage
+		} else {
+			newInventoryImage = nil
+		}
+
+		// Command builder
+		sqlStatement = "UPDATE " + baseTable + " SET inventory_image = ?, updated_at = ? WHERE id = ? AND created_by = ?"
+
+		// Exec
+		stmt, err := con.Prepare(sqlStatement)
+		if err != nil {
+			return res, err
+		}
+
+		result, err := stmt.Exec(newInventoryImage, dt, id, userId)
+		if err != nil {
+			return res, err
+		}
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return res, err
+		}
+
+		// Response
+		if rowsAffected > 0 {
+			res.Status = http.StatusOK
+			res.Message = generator.GenerateCommandMsg(baseTable, "update", 1)
+		} else {
+			res.Status = http.StatusNotFound
+			res.Message = generator.GenerateCommandMsg(baseTable, "update", 0)
+		}
+	} else {
+		// Response
+		res.Status = http.StatusUnprocessableEntity
+		res.Message = "Valid token but user not found"
+	}
+
+	return res, nil
+}

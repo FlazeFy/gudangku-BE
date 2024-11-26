@@ -4,6 +4,7 @@ import (
 	"gudangku/modules/inventories/models"
 	"gudangku/modules/inventories/repositories"
 	"gudangku/packages/helpers/converter"
+	"mime/multipart"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -115,6 +116,28 @@ func PostInventory(c echo.Context) error {
 	fileSize := file.Size
 
 	result, err := repositories.PostInventoryRepo(obj, token, file, fileExt, fileSize)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func PutInventoryImageById(c echo.Context) error {
+	token := c.Request().Header.Get("Authorization")
+	id := c.Param("id")
+
+	var fileExt string
+	var fileSize int64
+	var file *multipart.FileHeader
+
+	file, _ = c.FormFile("file")
+	if file != nil {
+		fileExt = strings.ToLower(strings.TrimPrefix(filepath.Ext(file.Filename), "."))
+		fileSize = file.Size
+	}
+
+	result, err := repositories.PutInventoryImageRepo(id, token, file, fileExt, fileSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 	}
