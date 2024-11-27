@@ -162,3 +162,111 @@ func PostReportRepo(d models.PostReportModel, token string, file *multipart.File
 
 	return res, nil
 }
+
+func DeleteReportByIdRepo(token, id string) (response.Response, error) {
+	// Declaration
+	var res response.Response
+	var baseTable = "report"
+	var itemTable = "report_item"
+	var sqlStatement, sqlItemStatement string
+	token = strings.Replace(token, "Bearer ", "", -1)
+	con := database.CreateCon()
+
+	userId, err := builders.GetUserIdFromToken(con, token)
+	if err != nil {
+		return res, err
+	}
+
+	if userId != "" {
+		// Command builder
+		sqlStatement = `DELETE FROM ` + baseTable + ` WHERE id = ? AND created_by = ?`
+
+		// Exec
+		stmt, err := con.Prepare(sqlStatement)
+		if err != nil {
+			return res, err
+		}
+		result, err := stmt.Exec(id, userId)
+		if err != nil {
+			return res, err
+		}
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return res, err
+		}
+
+		// Response
+		if rowsAffected > 0 {
+			sqlItemStatement = `DELETE FROM ` + itemTable + ` WHERE report_id = ? AND created_by = ?`
+			stmt, err := con.Prepare(sqlItemStatement)
+			if err != nil {
+				return res, err
+			}
+			_, err = stmt.Exec(id, userId)
+			if err != nil {
+				return res, err
+			}
+			res.Status = http.StatusOK
+			res.Message = "Report deleted"
+		} else {
+			res.Status = http.StatusNotFound
+			res.Message = "Report not found"
+		}
+	} else {
+		// Response
+		res.Status = http.StatusUnprocessableEntity
+		res.Message = "Valid token but user not found"
+		res.Data = nil
+	}
+
+	return res, nil
+}
+
+func DeleteReportItemByIdRepo(token, id string) (response.Response, error) {
+	// Declaration
+	var res response.Response
+	var baseTable = "report_item"
+	var sqlStatement string
+	token = strings.Replace(token, "Bearer ", "", -1)
+	con := database.CreateCon()
+
+	userId, err := builders.GetUserIdFromToken(con, token)
+	if err != nil {
+		return res, err
+	}
+
+	if userId != "" {
+		// Command builder
+		sqlStatement = `DELETE FROM ` + baseTable + ` WHERE id = ? AND created_by = ?`
+
+		// Exec
+		stmt, err := con.Prepare(sqlStatement)
+		if err != nil {
+			return res, err
+		}
+		result, err := stmt.Exec(id, userId)
+		if err != nil {
+			return res, err
+		}
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return res, err
+		}
+
+		// Response
+		if rowsAffected > 0 {
+			res.Status = http.StatusOK
+			res.Message = "Report item removed"
+		} else {
+			res.Status = http.StatusNotFound
+			res.Message = "Report item not found"
+		}
+	} else {
+		// Response
+		res.Status = http.StatusUnprocessableEntity
+		res.Message = "Valid token but user not found"
+		res.Data = nil
+	}
+
+	return res, nil
+}

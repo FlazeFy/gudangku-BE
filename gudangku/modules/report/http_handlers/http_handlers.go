@@ -37,3 +37,27 @@ func PostReport(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, result)
 }
+
+func DeleteReportById(c echo.Context) error {
+	token := c.Request().Header.Get("Authorization")
+	id := c.Param("id")
+
+	result, err := repositories.DeleteReportByIdRepo(token, id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func DeleteReportItemById(c echo.Context) error {
+	token := c.Request().Header.Get("Authorization")
+	id := c.Param("id")
+
+	result, err := repositories.DeleteReportItemByIdRepo(token, id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
