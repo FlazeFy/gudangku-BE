@@ -24,8 +24,8 @@ type Config struct {
 }
 
 var config = Config{
-	MaxSizeFile:     10000000, // 10 MB
-	AllowedFileType: []string{"jpg", "jpeg", "gif", "png"},
+	MaxSizeFile:     5000000, // 5 MB
+	AllowedFileType: []string{"jpg", "jpeg", "gif"},
 }
 
 func PostReminderRepo(d models.PostReminderModel, token string) (response.Response, error) {

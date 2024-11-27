@@ -4,6 +4,7 @@ import (
 	middlewares "gudangku/middlewares/jwt"
 	authhandlers "gudangku/modules/auth/http_handlers"
 	invhandlers "gudangku/modules/inventories/http_handlers"
+	rpthandlers "gudangku/modules/report/http_handlers"
 	stshandlers "gudangku/modules/stats/http_handlers"
 	syshandlers "gudangku/modules/systems/http_handlers"
 
@@ -47,11 +48,14 @@ func InitV1() *echo.Echo {
 	e.GET("api/v1/inventory/merk", invhandlers.GetListMerk)
 	e.GET("api/v1/inventory/search/by_room_storage/:room/:storage", invhandlers.GetInventoryByStorage)
 	e.GET("api/v1/inventory/detail/:id", invhandlers.GetInventoryDetail)
-	e.POST("api/v1/inventory", invhandlers.PostInventory)
-	e.PUT("api/v1/inventory/edit_image/:id", invhandlers.PutInventoryImageById)
+	e.POST("api/v1/inventory", invhandlers.PostInventory, middlewares.CustomJWTAuth)
+	e.PUT("api/v1/inventory/edit_image/:id", invhandlers.PutInventoryImageById, middlewares.CustomJWTAuth)
 
 	// Reminder
 	e.POST("api/v1/reminder", invhandlers.PostReminder, middlewares.CustomJWTAuth)
+
+	// Report
+	e.POST("api/v1/report", rpthandlers.PostReport, middlewares.CustomJWTAuth)
 
 	// History
 	e.GET("api/v1/history", syshandlers.GetAllHistory)
