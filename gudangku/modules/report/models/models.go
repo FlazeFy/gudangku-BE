@@ -13,8 +13,8 @@ type (
 	ReportItemModel struct {
 		InventoryID *string `json:"inventory_id"`
 		ItemName    string  `json:"item_name"`
-		ItemDesc    string  `json:"item_desc"`
+		ItemDesc    *string `json:"item_desc"`
 		ItemQty     int     `json:"item_qty"`
-		ItemPrice   int     `json:"item_price"`
+		ItemPrice   *int    `json:"item_price"`
 	}
 )

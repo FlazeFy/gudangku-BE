@@ -58,6 +58,8 @@ func InitV1() *echo.Echo {
 	e.POST("api/v1/report", rpthandlers.PostReport, middlewares.CustomJWTAuth)
 	e.DELETE("api/v1/report/delete/item/:id", rpthandlers.DeleteReportItemById, middlewares.CustomJWTAuth)
 	e.DELETE("api/v1/report/delete/report/:id", rpthandlers.DeleteReportById, middlewares.CustomJWTAuth)
+	e.PUT("api/v1/report/update/item/:id", rpthandlers.UpdateReportItemById, middlewares.CustomJWTAuth)
+	e.PUT("api/v1/report/update/report/:id", rpthandlers.UpdateReportById, middlewares.CustomJWTAuth)
 
 	// History
 	e.GET("api/v1/history", syshandlers.GetAllHistory)
