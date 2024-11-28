@@ -53,6 +53,8 @@ func InitV1() *echo.Echo {
 
 	// Reminder
 	e.POST("api/v1/reminder", invhandlers.PostReminder, middlewares.CustomJWTAuth)
+	e.PUT("api/v1/reminder/:id", invhandlers.UpdateReminderById, middlewares.CustomJWTAuth)
+	e.DELETE("api/v1/reminder/:id", invhandlers.DeleteReminderById, middlewares.CustomJWTAuth)
 
 	// Report
 	e.POST("api/v1/report", rpthandlers.PostReport, middlewares.CustomJWTAuth)

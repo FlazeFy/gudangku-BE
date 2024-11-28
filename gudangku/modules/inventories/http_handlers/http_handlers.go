@@ -144,3 +144,33 @@ func PutInventoryImageById(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, result)
 }
+
+func DeleteReminderById(c echo.Context) error {
+	token := c.Request().Header.Get("Authorization")
+	id := c.Param("id")
+
+	result, err := repositories.DeleteReminderByIdRepo(token, id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func UpdateReminderById(c echo.Context) error {
+	var obj models.PostReminderModel
+	token := c.Request().Header.Get("Authorization")
+
+	id := c.Param("id")
+	obj.InventoryId = c.FormValue("inventory_id")
+	obj.ReminderType = c.FormValue("reminder_type")
+	obj.ReminderDesc = c.FormValue("reminder_desc")
+	obj.ReminderContext = c.FormValue("reminder_context")
+
+	result, err := repositories.PutReminderByIdRepo(obj, token, id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
