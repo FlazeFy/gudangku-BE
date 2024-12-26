@@ -26,6 +26,8 @@ func InitV1() *echo.Echo {
 
 	// Dictionary
 	e.GET("api/v1/dct/:type", syshandlers.GetDictionaryByType)
+	e.POST("api/v1/dct", syshandlers.PostDictionary, middlewares.CustomJWTAuth)
+	e.DELETE("api/v1/dct/delete/:id", syshandlers.HardDeleteDictionaryById, middlewares.CustomJWTAuth)
 
 	// Auth
 	e.POST("api/v1/login", authhandlers.PostLoginUser)

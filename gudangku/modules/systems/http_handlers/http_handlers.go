@@ -1,6 +1,7 @@
 package httphandlers
 
 import (
+	"gudangku/modules/systems/models"
 	"gudangku/modules/systems/repositories"
 	"net/http"
 	"strconv"
@@ -32,6 +33,33 @@ func GetAllHistory(c echo.Context) error {
 func HardDelHistoryById(c echo.Context) error {
 	id := c.Param("id")
 	result, err := repositories.HardDelHistoryById(id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func PostDictionary(c echo.Context) error {
+	var obj models.PostDictionary
+	token := c.Request().Header.Get("Authorization")
+
+	obj.DctName = c.FormValue("dictionary_name")
+	obj.DctType = c.FormValue("dictionary_type")
+
+	result, err := repositories.PostDictionaryRepo(obj, token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func HardDeleteDictionaryById(c echo.Context) error {
+	token := c.Request().Header.Get("Authorization")
+	id := c.Param("id")
+
+	result, err := repositories.DeleteDictionaryByIdRepo(token, id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 	}

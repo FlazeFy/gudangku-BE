@@ -87,6 +87,22 @@ func GetInventoryAvailability(con *sql.DB, inventory_name, created_by string) (b
 	return false, nil
 }
 
+func GetDictionaryAvailability(con *sql.DB, dictionary_name, dictionary_type string) (bool, error) {
+	checkStatement := "SELECT 1 FROM dictionary WHERE dictionary_name = ? AND dictionary_type = ? LIMIT 1"
+	row := con.QueryRow(checkStatement, dictionary_name, dictionary_type)
+
+	var dummy int
+	err := row.Scan(&dummy)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return true, nil
+		}
+		return false, err
+	}
+
+	return false, nil
+}
+
 func GetInventoryName(con *sql.DB, inventory_id, user_id string) (string, error) {
 	checkStatement := "SELECT inventory_name FROM inventory WHERE id = ? AND created_by = ? LIMIT 1"
 	row := con.QueryRow(checkStatement, inventory_id, user_id)
