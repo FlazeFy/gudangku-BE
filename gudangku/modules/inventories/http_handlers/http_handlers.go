@@ -173,6 +173,30 @@ func PutRecoverInventoryById(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+func SoftDeleteInventoryById(c echo.Context) error {
+	token := c.Request().Header.Get("Authorization")
+	id := c.Param("id")
+
+	result, err := repositories.SoftDeleteInventoryByIdRepo(id, token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func HardDeleteInventoryById(c echo.Context) error {
+	token := c.Request().Header.Get("Authorization")
+	id := c.Param("id")
+
+	result, err := repositories.HardDeleteInventoryByIdRepo(id, token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
 func DeleteReminderById(c echo.Context) error {
 	token := c.Request().Header.Get("Authorization")
 	id := c.Param("id")

@@ -494,3 +494,104 @@ func PutRecoverInventoryByIdRepo(id, token string) (response.Response, error) {
 
 	return res, nil
 }
+
+func SoftDeleteInventoryByIdRepo(id, token string) (response.Response, error) {
+	// Declaration
+	var res response.Response
+	var baseTable = "inventory"
+	var sqlStatement string
+	token = strings.Replace(token, "Bearer ", "", -1)
+	con := database.CreateCon()
+	dt := time.Now().Format("2006-01-02 15:04:05")
+
+	userId, err := builders.GetUserIdFromToken(con, token)
+	if err != nil {
+		return res, err
+	}
+
+	if userId != "" {
+		// Command builder
+		sqlStatement = "UPDATE " + baseTable + " SET deleted_at = ? WHERE id = ? AND created_by = ?"
+
+		// Exec
+		stmt, err := con.Prepare(sqlStatement)
+		if err != nil {
+			return res, err
+		}
+
+		result, err := stmt.Exec(dt, id, userId)
+		if err != nil {
+			return res, err
+		}
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return res, err
+		}
+
+		// Response
+		if rowsAffected > 0 {
+			res.Status = http.StatusOK
+			res.Message = generator.GenerateCommandMsg(baseTable, "delete", 1)
+		} else {
+			res.Status = http.StatusNotFound
+			res.Message = generator.GenerateCommandMsg(baseTable, "delete", 0)
+		}
+	} else {
+		// Response
+		res.Status = http.StatusUnprocessableEntity
+		res.Message = "Valid token but user not found"
+	}
+
+	return res, nil
+}
+
+func HardDeleteInventoryByIdRepo(id, token string) (response.Response, error) {
+	// Declaration
+	var res response.Response
+	var baseTable = "inventory"
+	var sqlStatement string
+	token = strings.Replace(token, "Bearer ", "", -1)
+	con := database.CreateCon()
+
+	userId, err := builders.GetUserIdFromToken(con, token)
+	if err != nil {
+		return res, err
+	}
+
+	if userId != "" {
+		// Command builder
+		sqlStatement = "DELETE FROM " + baseTable + " WHERE id = ? AND created_by = ?"
+
+		// Exec
+		stmt, err := con.Prepare(sqlStatement)
+		if err != nil {
+			return res, err
+		}
+
+		result, err := stmt.Exec(id, userId)
+		if err != nil {
+			return res, err
+		}
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return res, err
+		}
+
+		// Response
+		if rowsAffected > 0 {
+			res.Status = http.StatusOK
+			res.Message = generator.GenerateCommandMsg(baseTable, "permentally delete", 1)
+		} else {
+			res.Status = http.StatusNotFound
+			res.Message = generator.GenerateCommandMsg(baseTable, "permentally delete", 0)
+		}
+	} else {
+		// Response
+		res.Status = http.StatusUnprocessableEntity
+		res.Message = "Valid token but user not found"
+	}
+
+	return res, nil
+}

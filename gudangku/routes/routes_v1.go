@@ -53,7 +53,9 @@ func InitV1() *echo.Echo {
 	e.POST("api/v1/inventory", invhandlers.PostInventory, middlewares.CustomJWTAuth)
 	e.PUT("api/v1/inventory/edit_image/:id", invhandlers.PutInventoryImageById, middlewares.CustomJWTAuth)
 	e.PUT("api/v1/inventory/edit_layout/:id", invhandlers.PutInventoryLayoutById, middlewares.CustomJWTAuth)
-	e.DELETE("api/v1/inventory/recover/:id", invhandlers.PutRecoverInventoryById, middlewares.CustomJWTAuth)
+	e.PUT("api/v1/inventory/recover/:id", invhandlers.PutRecoverInventoryById, middlewares.CustomJWTAuth)
+	e.DELETE("api/v1/inventory/delete/:id", invhandlers.SoftDeleteInventoryById, middlewares.CustomJWTAuth)
+	e.DELETE("api/v1/inventory/destroy/:id", invhandlers.HardDeleteInventoryById, middlewares.CustomJWTAuth)
 
 	// Reminder
 	e.POST("api/v1/reminder", invhandlers.PostReminder, middlewares.CustomJWTAuth)
