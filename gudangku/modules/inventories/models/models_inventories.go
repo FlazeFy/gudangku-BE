@@ -69,4 +69,8 @@ type (
 		UpdatedAt             string  `json:"updated_at"`
 		DeletedAt             *string `json:"deleted_at"`
 	}
+	InventoryLayoutData struct {
+		InventoryStorage string  `json:"inventory_storage"`
+		StorageDesc      *string `json:"storage_desc"`
+	}
 )

@@ -357,3 +357,140 @@ func PutInventoryImageRepo(id, token string, file *multipart.FileHeader, fileExt
 
 	return res, nil
 }
+
+func PutInventoryLayoutRepo(id string, d models.InventoryLayoutData, token string) (response.Response, error) {
+	// Declaration
+	var res response.Response
+	var baseTable = "inventory_layout"
+	var secondTable = "inventory"
+	var sqlStatement string
+	token = strings.Replace(token, "Bearer ", "", -1)
+	con := database.CreateCon()
+
+	userId, err := builders.GetUserIdFromToken(con, token)
+	if err != nil {
+		return res, err
+	}
+
+	if userId != "" {
+		// Check old inventory layout's storage
+		inventoryStorage, err := builders.GetInventoryStorageLayoutById(con, id, userId)
+		if err != nil {
+			return res, err
+		}
+
+		if inventoryStorage != nil {
+			// Command builder
+			sqlStatement = "UPDATE " + baseTable + " SET inventory_storage = ?, storage_desc = ? WHERE id = ? AND created_by = ?"
+
+			// Exec
+			stmt, err := con.Prepare(sqlStatement)
+			if err != nil {
+				return res, err
+			}
+
+			result, err := stmt.Exec(d.InventoryStorage, d.StorageDesc, id, userId)
+			if err != nil {
+				return res, err
+			}
+
+			rowsAffected, err := result.RowsAffected()
+			if err != nil {
+				return res, err
+			}
+
+			// Response
+			if rowsAffected > 0 {
+				// Command builder
+				sqlStatement = "UPDATE " + secondTable + " SET inventory_storage = ? WHERE inventory_storage = ? AND created_by = ?"
+
+				// Exec
+				stmt, err := con.Prepare(sqlStatement)
+				if err != nil {
+					return res, err
+				}
+
+				result, err := stmt.Exec(d.InventoryStorage, inventoryStorage, userId)
+				if err != nil {
+					return res, err
+				}
+
+				rowsAffected, err := result.RowsAffected()
+				if err != nil {
+					return res, err
+				}
+
+				// Response
+				if rowsAffected > 0 {
+					res.Status = http.StatusOK
+					res.Message = generator.GenerateCommandMsg(baseTable, "update", 1)
+				} else {
+					res.Status = http.StatusOK
+					res.Message = "nothing has change"
+				}
+			} else {
+				res.Status = http.StatusNotFound
+				res.Message = generator.GenerateCommandMsg(baseTable, "update", 0)
+			}
+		} else {
+			res.Status = http.StatusNotFound
+			res.Message = generator.GenerateCommandMsg(baseTable, "update", 0)
+		}
+	} else {
+		// Response
+		res.Status = http.StatusUnprocessableEntity
+		res.Message = "Valid token but user not found"
+	}
+
+	return res, nil
+}
+
+func PutRecoverInventoryByIdRepo(id, token string) (response.Response, error) {
+	// Declaration
+	var res response.Response
+	var baseTable = "inventory"
+	var sqlStatement string
+	token = strings.Replace(token, "Bearer ", "", -1)
+	con := database.CreateCon()
+
+	userId, err := builders.GetUserIdFromToken(con, token)
+	if err != nil {
+		return res, err
+	}
+
+	if userId != "" {
+		// Command builder
+		sqlStatement = "UPDATE " + baseTable + " SET deleted_at = null WHERE id = ? AND created_by = ?"
+
+		// Exec
+		stmt, err := con.Prepare(sqlStatement)
+		if err != nil {
+			return res, err
+		}
+
+		result, err := stmt.Exec(id, userId)
+		if err != nil {
+			return res, err
+		}
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return res, err
+		}
+
+		// Response
+		if rowsAffected > 0 {
+			res.Status = http.StatusOK
+			res.Message = generator.GenerateCommandMsg(baseTable, "recover", 1)
+		} else {
+			res.Status = http.StatusNotFound
+			res.Message = generator.GenerateCommandMsg(baseTable, "recover", 0)
+		}
+	} else {
+		// Response
+		res.Status = http.StatusUnprocessableEntity
+		res.Message = "Valid token but user not found"
+	}
+
+	return res, nil
+}

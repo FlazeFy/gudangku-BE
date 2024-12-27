@@ -119,6 +119,22 @@ func GetInventoryName(con *sql.DB, inventory_id, user_id string) (string, error)
 	return inventoryName, nil
 }
 
+func GetInventoryStorageLayoutById(con *sql.DB, id, user_id string) (*string, error) {
+	checkStatement := "SELECT inventory_storage FROM inventory_layout WHERE id = ? AND created_by = ? LIMIT 1"
+	row := con.QueryRow(checkStatement, id, user_id)
+
+	var InventoryStorage *string
+	err := row.Scan(&InventoryStorage)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return InventoryStorage, nil
+}
+
 func GetInventoryImageById(con *sql.DB, inventory_id, user_id string) (string, *string, error) {
 	checkStatement := "SELECT inventory_name, inventory_image FROM inventory WHERE id = ? AND created_by = ? LIMIT 1"
 	row := con.QueryRow(checkStatement, inventory_id, user_id)
